@@ -38,19 +38,24 @@ def ensure_ready() -> None:
         get_graph(idx)  # evidence graph over the packet, cached by packet hash
         run_challenge(idx, idx.current_version)  # independent assurance checks for the current return
         search.warm(idx)  # search index + LSA latent space, cached by packet hash
-        if settings.run_migrations_on_startup:
-            if settings.database_url.startswith("postgresql"):
-                with engine.connect() as conn:
-                    conn.exec_driver_sql("SELECT pg_advisory_lock(727274)")
-                    try:
-                        run_migrations(settings.database_url)
-                    finally:
-                        conn.exec_driver_sql("SELECT pg_advisory_unlock(727274)")
-            else:
+
+        def prepare():
+            if settings.run_migrations_on_startup:
                 run_migrations(settings.database_url)
-        with SessionLocal() as db:
-            seed(db, idx)
-            standards.load(db, idx)  # the firm's current standards (Iteration 9)
+            with SessionLocal() as db:
+                seed(db, idx)
+                standards.load(db, idx)  # the firm's current standards (Iteration 9)
+
+        if settings.database_url.startswith("postgresql"):
+            # Serverless cold starts run in parallel: one instance migrates and seeds, the rest wait and then find it done.
+            with engine.connect() as conn:
+                conn.exec_driver_sql("SELECT pg_advisory_lock(727274)")
+                try:
+                    prepare()
+                finally:
+                    conn.exec_driver_sql("SELECT pg_advisory_unlock(727274)")
+        else:
+            prepare()
         _done = True
 
 

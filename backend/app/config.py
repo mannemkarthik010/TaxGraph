@@ -38,3 +38,9 @@ if not os.environ.get("TAXPROOF_DATABASE_URL"):
             break
 settings.database_url = _driver_url(settings.database_url)
 SERVERLESS = bool(os.environ.get("VERCEL"))
+if SERVERLESS and not settings.database_url.startswith("postgresql"):
+    # The serverless filesystem is read-only and per-instance: SQLite would fail or silently lose every write.
+    # Name only the scheme — never echo the value, which may hold a password.
+    scheme = settings.database_url.split(":", 1)[0] if ":" in settings.database_url else "empty"
+    raise RuntimeError("No PostgreSQL database configured: set DATABASE_URL (or POSTGRES_URL) to a postgresql:// "
+                       f"connection string for this deployment (current value starts with '{scheme}').")

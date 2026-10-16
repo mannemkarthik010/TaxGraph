@@ -11,3 +11,6 @@ frontend/.env.local
 *.tsbuildinfo
 frontend/coverage/
 backend/.ruff_cache/
+.vercel
+.env*
+!.env.example
