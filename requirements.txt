@@ -1,0 +1,10 @@
+# Runtime dependencies of the TaxProof API as deployed on Vercel (api/index.py). Local development and
+# tests use backend/requirements.txt, which adds the test and server tools.
+fastapi==0.115.12
+sqlalchemy==2.0.40
+alembic==1.15.2
+psycopg[binary]==3.2.6
+pydantic==2.11.3
+pydantic-settings==2.9.1
+httpx==0.28.1
+numpy==2.2.6

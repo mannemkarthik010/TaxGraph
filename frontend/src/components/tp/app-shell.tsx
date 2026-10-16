@@ -50,8 +50,10 @@ function useGoKeys() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { data: eng } = useApi<Engagement>("/api/engagement");
+  const bare = pathname.startsWith("/access");  // the access-code page stands alone (no API calls before the code)
+  const { data: eng } = useApi<Engagement>(bare ? null : "/api/engagement");
   useGoKeys();
+  if (bare) return <main className="min-h-screen bg-slate-50 px-4">{children}</main>;
 
   return (
     <div className="flex min-h-screen">

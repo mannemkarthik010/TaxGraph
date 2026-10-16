@@ -3,7 +3,9 @@ from collections.abc import Iterator
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-from .config import settings
+from sqlalchemy.pool import NullPool
+
+from .config import SERVERLESS, settings
 
 
 class Base(DeclarativeBase):
@@ -12,7 +14,8 @@ class Base(DeclarativeBase):
 
 def make_engine(url: str):
     if not url.startswith("sqlite"):
-        return create_engine(url, pool_pre_ping=True)
+        # Serverless instances freeze between requests: never keep connections open across them.
+        return create_engine(url, poolclass=NullPool) if SERVERLESS else create_engine(url, pool_pre_ping=True)
     eng = create_engine(url, connect_args={"check_same_thread": False})
 
     # pysqlite starts transactions lazily (only before DML), so a SAVEPOINT can open — and its RELEASE

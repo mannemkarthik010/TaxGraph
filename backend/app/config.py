@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -20,4 +21,20 @@ class Settings(BaseSettings):
     ai_base_url: str = "https://api.anthropic.com"
 
 
+def _driver_url(url: str) -> str:
+    """Hosted Postgres (Vercel / Neon, Render, Heroku …) hands out postgres:// URLs; SQLAlchemy needs the driver."""
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
+
+
 settings = Settings()
+if not os.environ.get("TAXPROOF_DATABASE_URL"):
+    # On a host that provisions the database itself, use the URL it injects (pooled first).
+    for var in ("POSTGRES_URL", "DATABASE_URL"):
+        if os.environ.get(var):
+            settings.database_url = os.environ[var]
+            break
+settings.database_url = _driver_url(settings.database_url)
+SERVERLESS = bool(os.environ.get("VERCEL"))

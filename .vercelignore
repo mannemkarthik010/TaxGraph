@@ -1,0 +1,10 @@
+# The API project deploys from the repository root; the web app is a separate project (frontend/).
+frontend/
+docs/
+backend/tests/
+backend/.venv/
+backend/.env
+backend/*.db
+**/__pycache__/
+**/.pytest_cache/
+.claude/
