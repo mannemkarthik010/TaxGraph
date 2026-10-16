@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: taxproof
+      POSTGRES_PASSWORD: taxproof_local_dev
+      POSTGRES_DB: taxproof
+    ports:
+      - "5433:5432"
+    volumes:
+      - taxproof_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taxproof"]
+      interval: 2s
+      retries: 30
+volumes:
+  taxproof_pg:
